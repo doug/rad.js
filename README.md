@@ -13,7 +13,7 @@ All manipulation is on rows. Rows are the fundamental unit they can be whatever 
 If you want to sort or filter your data do that with writing out different static files or just use a database.
 
 ```javascript
-[litte-endian int32 size of header]
+[litte-endian uint32 size of header]
 {
 	"count": 600,  // is the total number of rows [required]
 	"size": 80,  // is the size of a single row in bytes [required]
