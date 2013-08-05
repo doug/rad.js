@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Random Access Data</title>
+    <link rel="stylesheet" href="extras/qunit-git.css">
+  </head>
+  <body>
+  <div id="qunit"></div>
+  <script src="extras/qunit-git.js" type="text/javascript"></script>
+  <script src="extras/jquery.min.js"></script>
+  <script src="rad.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+
+// Helper functions
+function after(counter, callback) {
+  return function() {
+    if (--counter <= 0) {
+      if (callback) {
+        callback();
+      }
+    }
+  };
+}
+
+asyncTest('Parse metadata', function() {
+  rad.file("test.rad", function(f) {
+    ok(f.count == 2321, 'count ' + f.count);
+    ok(f.size == 101, 'size' + f.size);
+    ok(!!f.parser, 'parser' + f.parser);
+    start();
+  });
+});
+
+asyncTest('get', function() {
+  rad.file("test.rad", function(f) {
+    f.get(0, function(row) {
+      deepEqual(row, [1.01, 14.42, 2.4706132, 55.76257, 0.036, 1394, 1.14, 5814, 1.06, 11.338, "19:07:14.02", "+49&deg;18'59\""], row);
+      f.get(10, 20, function(rows) {
+        deepEqual(rows, [[17.01,11.06,3.2346996,54.4858,0.045,1260,0.91,5826,1.08,13,"19:47:20.94","+48&deg;14'23\""],[18.01,17.37,3.5484657,55.90078,0.052,1733,0.95,6297,2.02,13.369,"19:57:37.69","+44&deg;02'06\""],[20.01,17.58,4.4379629,104.00836,0.056,1314,1.09,6011,1.38,13.438,"19:04:58.44","+50&deg;02'25\""],[22.01,11.26,7.8914502,110.24904,0.081,976,1.07,5972,1.11,13.435,"18:50:31.13","+46&deg;19'24\""],[41.01,2.08,12.8157354,55.95061,0.111,869,1.11,5909,1.23,11,"19:25:32.63","+41&deg;59'25\""],[41.02,1.23,6.8870994,66.1758,0.073,1071,1.11,5909,1.23,11,"19:25:32.63","+41&deg;59'25\""],[41.03,1.4,35.3331429,86.98394,0.218,620,1.11,5909,1.23,11,"19:25:32.63","+41&deg;59'25\""],[42.01,2.71,17.8343811,114.22232,0.141,845,1.14,6170,1.36,9.364,"18:52:36.16","+45&deg;08'23\""],[44.01,9.88,66.467694,93.47431,0.313,412,0.85,5490,0.91,13.483,"20:00:36.43","+45&deg;05'22\""],[46.01,4.32,3.4876878,103.93149,0.047,1233,1.12,5764,1.1,13.77,"18:53:01.32","+48&deg;21'18\""]], rows);
+        f.get(0, f.count, function(all) {
+          ok(all.length === f.count, "Fetch all " + all.length);
+          start();
+        });
+      });
+    });
+  }, {batch_size: 1000});
+});
+
+asyncTest('forEach', function() {
+  rad.file("test.rad", function(f) {
+    var done = after(f.count, function() {
+      ok(true, 'Successfully grabbed all rows.');
+      start();
+    });
+    f.forEach(function(row) {
+      done();
+    });
+  }, {batch_size: 1000});
+});
+
+asyncTest('iterate with next callback', function() {
+  rad.file("test.rad", function(f) {
+    var done = after(f.count, function() {
+      ok(true, 'Successfully grabbed all rows.');
+      start();
+    });
+    var iter = f.iter(0, f.count);
+    function each(i) {
+      done();
+      if (iter.has_next()) {
+        iter.next(each);
+      }
+    }
+    iter.next(each);
+  }, {batch_size: 100000});
+});
+
+asyncTest('iterate with requestAnimationFrame', function() {
+  rad.file("test.rad", function(f) {
+    var done = after(100, function() {
+      ok(true, 'Successfully grabbed all rows.');
+      start();
+    });
+    var iter = f.iter(0, 100);
+    var callback = function() {
+      done();
+      if (iter.has_next()) {
+        window.requestAnimationFrame(function(timestamp) {
+          iter.next(callback);
+        });
+      }
+    }
+    iter.next(callback);
+  }, {batch_size: 20});
+});
+
+asyncTest('bad iterate, use forEach instead', function() {
+  rad.file("test.rad", function(f) {
+    var done = after(f.count, function() {
+      ok(true, 'Successfully grabbed all rows.');
+      start();
+    });
+    // while this looks clean and works, this is bad because it has to set up 
+    // and store and then delete a callback for each index which will happen 
+    // before any of them actually ever get loaded from the batchFetching. 
+    // It is much better to use a callback, that calls next after the next one, 
+    // which is what the iterate example above does as well as how forEach 
+    // works internally. This also uses a deferred callback with is done with setTimeout
+    // which also slows everything down when you are using lots of callback functions
+    var iter = f.iter(0, f.count);
+    while (iter.has_next()) {
+      iter.next(function() {
+        done();
+      });
+    }
+  }, {batch_size: 100});
+});
+
+</script>
+</head>
+<body>
+</body>
+</html>
