@@ -5,29 +5,21 @@ The header metadata is just JSON. The size of the metadata is encoded in the fir
 Range requests work by default on Google Cloud storage, and many other cloud storage locations.
 
 ###Header Info
-filename: the files name [optional]
-description: description of data [optional]
-count: is the total number of rows [required]
-size: is the size of a single row in bytes [required]
-optional url to parser [optional]
-inline parser string [optional]
 
-The inline parser or url to parser is dangerous but you are loading up data you should trust your source. Rad can also take an explicit parser which will then ignore any parser defined in the file, if you are paranoid.
+The inline parser or url to parser is dangerous but you are loading up data you should trust your source. Rad can also take an explicit parser during setup which will then ignore any parsers defined in the file, if you are paranoid.
 
-All manipulation is on rows.
-
-Rows are the fundamental unit they can be whatever you want.
+All manipulation is on rows. Rows are the fundamental unit they can be whatever you want.
 
 If you want to sort or filter your data do that with writing out different static files or just use a database.
 
 ```javascript
 [int32 size of header]
 {
-	"count": 600,
-	"size": 80,
-	"parser": "JSON.parse"
-	"filename": "name",
-	"description": "description",
+	"count": 600,  // is the total number of rows [required]
+	"size": 80,  // is the size of a single row in bytes [required]
+	"parser": "JSON.parse",  // inline parser string or url to js parser code [optional]
+	"filename": "name",  // the files name [optional]
+	"description": "description"  // description of data [optional]
 }
 ```
 
