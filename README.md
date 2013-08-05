@@ -47,37 +47,31 @@ When encoding json as a row pad with spaces so JSON.parse can handle the trailin
 ```javascript
 rad.file("/filename.rad", 
 	function(file) {
+		// Get an item
 		file.get(10, function(item) {
+			console.log('item 10', item);
+		});
+
+		// Get a set of items, -1 means read till the end
+		file.get(0, -1, function(items) {
+			console.log('all items', items);
+		});
+
+		// generate an iterator for a range of items
+		var items = file.iter(0, -1);
+
+		items.next(function(item) {
 			console.log(item);
-		}
+		});
+
+		file.forEach(function(item) {
+			console.log('each item as fast as I can.')
+		});
+
 	}
 }, {
 	header_size: 10000, // custom header size, default: 2000 bytes
 	memory: 10000 // max memory to use in fetching chunks, default: 10000 bytes
 });
 
-// Get an item
-f.get(10, function(item) {
-	console.log('item 10', item);
-});
-
-// Get a set of items, -1 means read till the end
-f.get(0, -1, function(items) {
-	console.log('all items', items);
-});
-
-// generate an iterator for a range of items
-var items = f.iter(0, -1);
-
-items.next(function(item) {
-	console.log(item);
-});
-
-
-f.forEach(function(item) {
-	console.log('each item as fast as I can.')
-});
 ```
-
-TODO:
-How do byte range requests deal with GZipped data?
