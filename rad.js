@@ -239,6 +239,7 @@ Iterator.prototype.next = function(callback) {
 
 
 return {
+  File: File,
   file: function(url, callback, opt_config) {
     opt_config = opt_config || {};
     fetchMetadata(url, opt_config.header_size || defaults.header_size,
